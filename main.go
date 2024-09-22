@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"sync"
 )
 
 func init() {
@@ -21,7 +23,17 @@ func main() {
 	log.Fatal(srv.ListenAndServe())
 }
 
+var (
+	pageHits     int
+	pageHitsLock sync.Mutex
+)
+
 func myHandler(w http.ResponseWriter, r *http.Request) {
+	pageHitsLock.Lock()
+	defer pageHitsLock.Unlock()
+	pageHits++
+
 	log.Printf("Request from %s for %s", r.RemoteAddr, r.URL.Path)
-	w.Write([]byte("Hello, World!"))
+	log.Printf("Page hits: %d", pageHits)
+	w.Write([]byte(fmt.Sprintf("Hello, World!\nPage hit counter: %d\n", pageHits)))
 }
